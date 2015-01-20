@@ -31,7 +31,7 @@ describe AccessToken do
       expect(target.params['foo']).to eq('bar')
     end
 
-    def assert_initialized_token(target)
+    def assert_initialized_token(target) # rubocop:disable Metrics/AbcSize
       expect(target.token).to eq(token)
       expect(target).to be_expires
       expect(target.params.keys).to include('foo')
@@ -132,7 +132,41 @@ describe AccessToken do
       allow(Time).to receive(:now).and_return(@now)
       expect(access).to be_expired
     end
+  end
 
+  describe '#expires_in' do
+    before { allow(Time).to receive(:now).and_return(Time.parse('Jan 1 2000')) }
+
+    context 'with opts :expires_at' do
+      it 'returns the seconds left until the token expires' do
+        @then = Time.now.to_i + 1800
+        access = AccessToken.new(client, token, :refresh_token => 'abaca', :expires_at => @then)
+        expect(access.expires_in).to eq(1800)
+      end
+    end
+
+    context 'with opts :expires_in' do
+      context 'as a number' do
+        it 'returns seconds left until the token expires' do
+          access = AccessToken.new(client, token, :refresh_token => 'abaca', :expires_in => 3600)
+          expect(access.expires_in).to eq(3600)
+        end
+      end
+
+      context 'as a string' do
+        it 'returns seconds left until the token expires ' do
+          access = AccessToken.new(client, token, :refresh_token => 'abaca', :expires_in => '3600')
+          expect(access.expires_in).to eq(3600)
+        end
+      end
+    end
+
+    context 'when no expiration options are used to initialize token' do
+      it 'returns nil' do
+        access = AccessToken.new(client, token)
+        expect(access.expires_in).to be_nil
+      end
+    end
   end
 
   describe '#refresh!' do

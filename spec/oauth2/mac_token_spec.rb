@@ -88,10 +88,12 @@ describe MACToken do
   end
 
   describe '.from_access_token' do
+    let(:one_second_later) { Time.now.to_i + 1 }
+
     let(:access_token) do
       AccessToken.new(
         client, token,
-        :expires_at => 1,
+        :expires_at => one_second_later,
         :expires_in => 1,
         :refresh_token => 'abc',
         :random => 1
@@ -107,7 +109,7 @@ describe MACToken do
     end
 
     it 'initializes configuration options' do
-      expect(subject.expires_at).to eq(1)
+      expect(subject.expires_at).to eq(one_second_later)
       expect(subject.expires_in).to eq(1)
       expect(subject.refresh_token).to eq('abc')
     end

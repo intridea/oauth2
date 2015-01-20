@@ -52,5 +52,4 @@ describe OAuth2::Strategy::Assertion do
       end
     end
   end
-
 end

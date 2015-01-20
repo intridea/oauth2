@@ -85,7 +85,7 @@ module OAuth2
     #   code response for this request.  Will default to client option
     # @option opts [Symbol] :parse @see Response::initialize
     # @yield [req] The Faraday request
-    def request(verb, url, opts = {}) # rubocop:disable CyclomaticComplexity, MethodLength
+    def request(verb, url, opts = {}) # rubocop:disable CyclomaticComplexity, MethodLength, Metrics/AbcSize
       connection.response :logger, ::Logger.new($stdout) if ENV['OAUTH_DEBUG'] == 'true'
 
       url = connection.build_url(url, opts[:params]).to_s
@@ -125,7 +125,7 @@ module OAuth2
     # @param [Hash] access token options, to pass to the AccessToken object
     # @param [Class] class of access token for easier subclassing OAuth2::AccessToken
     # @return [AccessToken] the initalized AccessToken
-    def get_token(params, access_token_opts = {}, access_token_class = AccessToken)
+    def get_token(params, access_token_opts = {}, access_token_class = AccessToken) # rubocop:disable Metrics/AbcSize
       opts = {:raise_errors => options[:raise_errors], :parse => params.delete(:parse)}
       if options[:token_method] == :post
         headers = params.delete(:headers)

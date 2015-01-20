@@ -1,6 +1,6 @@
 module OAuth2
   class AccessToken
-    attr_reader :client, :token, :expires_in, :expires_at, :params
+    attr_reader :client, :token, :expires_at, :params
     attr_accessor :options, :refresh_token
 
     class << self
@@ -43,9 +43,7 @@ module OAuth2
         instance_variable_set("@#{arg}", opts.delete(arg) || opts.delete(arg.to_s))
       end
       @expires_in ||= opts.delete('expires')
-      @expires_in &&= @expires_in.to_i
-      @expires_at &&= @expires_at.to_i
-      @expires_at ||= Time.now.to_i + @expires_in if @expires_in
+      set_expiration_vars
       @options = {:mode          => opts.delete(:mode) || :header,
                   :header_format => opts.delete(:header_format) || 'Bearer %s',
                   :param_name    => opts.delete(:param_name) || 'access_token'}
@@ -71,6 +69,14 @@ module OAuth2
     # @return [Boolean]
     def expired?
       expires? && (expires_at < Time.now.to_i)
+    end
+
+    # How long until the token expires
+    #
+    # @return [FixNum] seconds until expiration
+    # @return [Nil] if the token will not expire
+    def expires_in
+      (expires_at - Time.now.to_i) if expires?
     end
 
     # Refreshes the current Access Token
@@ -149,7 +155,13 @@ module OAuth2
 
   private
 
-    def token=(opts) # rubocop:disable MethodLength
+    def set_expiration_vars
+      @expires_in &&= @expires_in.to_i
+      @expires_at &&= @expires_at.to_i
+      @expires_at ||= Time.now.to_i + @expires_in if @expires_in
+    end
+
+    def token=(opts) # rubocop:disable MethodLength, Metrics/AbcSize
       case options[:mode]
       when :header
         opts[:headers] ||= {}

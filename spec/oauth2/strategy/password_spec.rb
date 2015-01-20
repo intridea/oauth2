@@ -53,5 +53,4 @@ describe OAuth2::Strategy::Password do
       end
     end
   end
-
 end
