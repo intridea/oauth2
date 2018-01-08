@@ -42,6 +42,19 @@ response = token.get('/api/resource', :params => { 'query_foo' => 'bar' })
 response.class.name
 # => OAuth2::Response
 ```
+
+In above example, the default Authorization URL is `oauth/authorize` and default Access Token URL is `oauth/token`. You can specify URLs for authorization and access token as shown below:
+
+```ruby
+site = 'https://example.org'
+client = OAuth2::Client.new(client_id, client_secret, 
+                            :site => site,
+                            :authorize_url=>"/apps/authorize/",
+                            :token_url=>"/oauth2/access_token")
+#<OAuth2::Client:0x000000019adcf0 @id="client1", @secret="secret1", @site="https://example.org", @options={:authorize_url=>"/apps/authorize/", :token_url=>"/oauth2/access_token", :token_method=>:post, :connection_opts=>{}, :connection_build=>nil, :max_redirects=>5, :raise_errors=>true}
+```
+
+
 ## OAuth2::Response
 The AccessToken methods #get, #post, #put and #delete and the generic #request
 will return an instance of the #OAuth2::Response class.
