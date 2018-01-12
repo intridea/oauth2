@@ -1,4 +1,5 @@
 require 'helper'
+require 'zlib'
 
 describe OAuth2::Response do
   describe '#initialize' do
@@ -94,6 +95,32 @@ describe OAuth2::Response do
 
       response = double('response', :headers => headers, :body => body)
       expect(OAuth2::Response.new(response).parsed).to eq('foo' => {'bar' => 'baz'})
+    end
+  end
+
+  context 'when gzip content-encoding' do
+    let(:headers) do
+      {'content-type' => 'application/json', 'content-encoding' => 'gzip'}
+    end
+    let(:original_data) do
+      {'data' => 'some test data'}
+    end
+    let(:body) do
+      str_io = StringIO.new('w')
+
+      Zlib::GzipWriter.new(str_io).tap do |gz|
+        gz.write(MultiJson.dump(original_data))
+        gz.close
+      end
+
+      str_io.string
+    end
+    let(:response) do
+      double('response', :status => 200, :headers => headers, :body => body)
+    end
+
+    it do
+      expect(OAuth2::Response.new(response).parsed).to eq(original_data)
     end
   end
 end
