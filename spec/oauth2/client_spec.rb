@@ -407,6 +407,22 @@ RSpec.describe OAuth2::Client do
         expect(ex.to_s).to match(/unknown error/)
       end
     end
+
+    context 'when errors are raised by Faraday' do
+      let(:connection) { instance_double(Faraday::Connection, build_url: double) }
+
+      it 'rescues Faraday::ConnectionFailed' do
+        allow(connection).to(
+          receive(:run_request).and_raise(Faraday::ConnectionFailed.new('fail'))
+        )
+        allow(subject).to receive(:connection).and_return(connection) # rubocop:disable RSpec/SubjectStub
+
+        expect { subject.request(:get, '/redirect') }.to raise_error do |e|
+          expect(e.class).to eq(OAuth2::ConnectionError)
+          expect(e.message).to eq('fail')
+        end
+      end
+    end
   end
 
   describe '#get_token' do

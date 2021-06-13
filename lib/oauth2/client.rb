@@ -4,6 +4,7 @@ require 'faraday'
 require 'logger'
 
 module OAuth2
+  ConnectionError = Class.new(StandardError)
   # The OAuth2::Client class
   class Client # rubocop:disable Metrics/ClassLength
     RESERVED_PARAM_KEYS = %w[headers parse].freeze
@@ -100,10 +101,16 @@ module OAuth2
     # @yield [req] The Faraday request
     def request(verb, url, opts = {}) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/AbcSize
       url = connection.build_url(url).to_s
-      response = connection.run_request(verb, url, opts[:body], opts[:headers]) do |req|
-        req.params.update(opts[:params]) if opts[:params]
-        yield(req) if block_given?
+
+      begin
+        response = connection.run_request(verb, url, opts[:body], opts[:headers]) do |req|
+          req.params.update(opts[:params]) if opts[:params]
+          yield(req) if block_given?
+        end
+      rescue Faraday::ConnectionFailed => e
+        raise ConnectionError.new(e)
       end
+
       response = Response.new(response, parse: opts[:parse])
 
       case response.status
