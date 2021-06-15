@@ -116,7 +116,8 @@ module OAuth2
           verb = :get
           opts.delete(:body)
         end
-        request(verb, response.headers['location'], opts)
+        full_location = response.response.env.url.merge(response.headers['location'])
+        request(verb, full_location, opts)
       when 200..299, 300..399
         # on non-redirecting 3xx statuses, just return the response
         response
