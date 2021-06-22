@@ -116,7 +116,13 @@ module OAuth2
           verb = :get
           opts.delete(:body)
         end
-        request(verb, response.headers['location'], opts)
+        location = response.headers['location']
+        if location
+          request(verb, location, opts)
+        else
+          error = Error.new(response)
+          raise(error, "Got #{response.status} status code, but no Location header was present")
+        end
       when 200..299, 300..399
         # on non-redirecting 3xx statuses, just return the response
         response

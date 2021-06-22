@@ -13,6 +13,7 @@ RSpec.describe OAuth2::Client do
         stub.get('/unauthorized')        { |_env| [401, {'Content-Type' => 'application/json'}, MultiJson.encode(error: error_value, error_description: error_description_value)] }
         stub.get('/conflict')            { |_env| [409, {'Content-Type' => 'text/plain'}, 'not authorized'] }
         stub.get('/redirect')            { |_env| [302, {'Content-Type' => 'text/plain', 'location' => '/success'}, ''] }
+        stub.get('/redirect_no_loc')     { |_env| [302, {'Content-Type' => 'text/plain'}, ''] }
         stub.post('/redirect')           { |_env| [303, {'Content-Type' => 'text/plain', 'location' => '/reflect'}, ''] }
         stub.get('/error')               { |_env| [500, {'Content-Type' => 'text/plain'}, 'unknown error'] }
         stub.get('/empty_get')           { |_env| [204, {}, nil] }
@@ -361,6 +362,10 @@ RSpec.describe OAuth2::Client do
       response = subject.request(:post, '/redirect', body: 'foo=bar')
       expect(response.body).to be_empty
       expect(response.status).to eq(200)
+    end
+
+    it 'raises an error if a redirect has no Location header' do
+      expect { subject.request(:get, '/redirect_no_loc') }.to raise_error(OAuth2::Error, 'Got 302 status code, but no Location header was present')
     end
 
     it 'obeys the :max_redirects option' do
